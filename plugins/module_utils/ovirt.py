@@ -38,9 +38,9 @@ try:
     import ovirtsdk4 as sdk
     import ovirtsdk4.version as sdk_version
     import ovirtsdk4.types as otypes
-    HAS_SDK = ComparableVersion(sdk_version.VERSION) >= ComparableVersion('4.4.0')
-except ImportError:
-    HAS_SDK = False
+    SDK_CHECK = (ComparableVersion(sdk_version.VERSION) >= ComparableVersion('4.4.0'), 'ovirtsdk4 version 4.4.0 or higher is required for this module')
+except ImportError as import_err:
+    SDK_CHECK = (False, import_err)
 
 
 BYTES_MAP = {
@@ -53,9 +53,9 @@ BYTES_MAP = {
 
 
 def check_sdk(module):
-    if not HAS_SDK:
+    if not SDK_CHECK[0]:
         module.fail_json(
-            msg='ovirtsdk4 version 4.4.0 or higher is required for this module'
+            msg=f'One or more dependency is missing : {SDK_CHECK[1]}'
         )
 
 
@@ -894,7 +894,7 @@ def _sdk4_error_maybe():
     """
     Allow for ovirtsdk4 not being installed.
     """
-    if HAS_SDK:
+    if SDK_CHECK[0]:
         return sdk.Error
     return type(None)
 
